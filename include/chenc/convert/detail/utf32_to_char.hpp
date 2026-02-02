@@ -14,14 +14,15 @@ namespace chenc::utf::detail {
 	/**
 	 * @brief utf32 转换为 utfX
 	 * @note 内部实现，请勿调用
-	 * @note 假定输入字符编码合法
+	 * @note 假定输入字符编码合法 
+	 * @note result.output_block_ 存储期望的输出块数
 	 */
-	template <any_utf_char In,
-			  any_utf_char Out,
-			  options_t Options>
+	template <options_t Options,
+			  any_utf_char In,
+			  any_utf_char Out>
 	inline constexpr error_t utf32_to_char(u32 input_char,
-										   const Out *const output_char, const Out *const output_end,
-										   char_result_t<In, Out, Options> &result) noexcept {
+										   Out *const output_char, const Out *const output_end,
+										   char_result_t<Options, In, Out> &result) noexcept {
 		if constexpr (utf8_char<Out>) {
 			// 1. 快速处理 ASCII
 			if (input_char <= 0x7F) [[likely]] {

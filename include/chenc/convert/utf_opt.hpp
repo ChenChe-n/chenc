@@ -7,6 +7,20 @@
 
 namespace chenc::utf {
 
+	template <u32 C>
+	struct replace_char_t {
+		static_assert(C <= 0x10FFFF, "unicode code point out of range");
+		static_assert(!(C >= 0xD800 && C <= 0xDFFF),
+					  "surrogates are not allowed");
+		static_assert(
+			!((C >= 0xFDD0 && C <= 0xFDEF) ||
+			  ((C & 0xFFFF) == 0xFFFE) ||
+			  ((C & 0xFFFF) == 0xFFFF)),
+			"non-characters are not allowed");
+
+		static constexpr u32 value = C;
+	};
+
 	/**
 	 * @brief UTF 转换配置选项
 	 */
@@ -43,48 +57,59 @@ namespace chenc::utf {
 		perf_mode perf_mode_ = perf_mode::normal;
 		u32 replace_char_ = 0xFFFD;
 
-		inline constexpr options_t() = default;
+		inline consteval options_t() = default;
 
 		template <typename... Args>
-		inline constexpr options_t(Args... args) { (apply_arg(args), ...); }
+		inline consteval options_t(Args... args) { (apply_arg(args), ...); }
 
 	private:
-		inline constexpr void apply_arg(char_mode m) { char_mode_ = m; }
-		inline constexpr void apply_arg(error_mode m) { error_mode_ = m; }
-		inline constexpr void apply_arg(out_mode m) { out_mode_ = m; }
-		inline constexpr void apply_arg(input_mode m) { input_mode_ = m; }
-		inline constexpr void apply_arg(perf_mode m) { perf_mode_ = m; }
-		inline constexpr void apply_arg(u32 c) { replace_char_ = c; }
+		inline consteval void apply_arg(char_mode m) { char_mode_ = m; }
+		inline consteval void apply_arg(error_mode m) { error_mode_ = m; }
+		inline consteval void apply_arg(out_mode m) { out_mode_ = m; }
+		inline consteval void apply_arg(input_mode m) { input_mode_ = m; }
+		inline consteval void apply_arg(perf_mode m) { perf_mode_ = m; }
+
+		template <u32 C>
+		inline consteval void apply_arg(replace_char_t<C>) {
+			replace_char_ = replace_char_t<C>::value;
+		}
+		inline consteval void apply_arg(options_t m) {
+			char_mode_ = m.char_mode_;
+			error_mode_ = m.error_mode_;
+			out_mode_ = m.out_mode_;
+			input_mode_ = m.input_mode_;
+			perf_mode_ = m.perf_mode_;
+		}
 	};
 
 	template <options_t Options>
-	inline constexpr bool is_char_mode__strict() noexcept { return Options.char_mode_ == char_mode::strict; }
+	inline constexpr bool is_char_mode__strict() noexcept { return Options.char_mode_ == options_t::char_mode::strict; }
 	template <options_t Options>
-	inline constexpr bool is_char_mode__compatible() noexcept { return Options.char_mode_ == char_mode::compatible; }
+	inline constexpr bool is_char_mode__compatible() noexcept { return Options.char_mode_ == options_t::char_mode::compatible; }
 	template <options_t Options>
-	inline constexpr bool is_char_mode__none() noexcept { return Options.char_mode_ == char_mode::none; }
+	inline constexpr bool is_char_mode__none() noexcept { return Options.char_mode_ == options_t::char_mode::none; }
 	template <options_t Options>
-	inline constexpr bool is_error_mode__stop() noexcept { return Options.error_mode_ == error_mode::stop; }
+	inline constexpr bool is_error_mode__stop() noexcept { return Options.error_mode_ == options_t::error_mode::stop; }
 	template <options_t Options>
-	inline constexpr bool is_error_mode__skip() noexcept { return Options.error_mode_ == error_mode::skip; }
+	inline constexpr bool is_error_mode__skip() noexcept { return Options.error_mode_ == options_t::error_mode::skip; }
 	template <options_t Options>
-	inline constexpr bool is_error_mode__replace() noexcept { return Options.error_mode_ == error_mode::replace; }
+	inline constexpr bool is_error_mode__replace() noexcept { return Options.error_mode_ == options_t::error_mode::replace; }
 	template <options_t Options>
-	inline constexpr bool is_input_mode__normal() noexcept { return Options.input_mode_ == input_mode::normal; }
+	inline constexpr bool is_input_mode__normal() noexcept { return Options.input_mode_ == options_t::input_mode::normal; }
 	template <options_t Options>
-	inline constexpr bool is_input_mode__none_check_buffer() noexcept { return Options.input_mode_ == input_mode::none_check_buffer; }
+	inline constexpr bool is_input_mode__none_check_buffer() noexcept { return Options.input_mode_ == options_t::input_mode::none_check_buffer; }
 	template <options_t Options>
-	inline constexpr bool is_out_mode__normal() noexcept { return Options.out_mode_ == out_mode::normal; }
+	inline constexpr bool is_out_mode__normal() noexcept { return Options.out_mode_ == options_t::out_mode::normal; }
 	template <options_t Options>
-	inline constexpr bool is_out_mode__full() noexcept { return Options.out_mode_ == out_mode::full; }
+	inline constexpr bool is_out_mode__full() noexcept { return Options.out_mode_ == options_t::out_mode::full; }
 	template <options_t Options>
-	inline constexpr bool is_out_mode__none_check_buffer() noexcept { return Options.out_mode_ == out_mode::none_check_buffer; }
+	inline constexpr bool is_out_mode__none_check_buffer() noexcept { return Options.out_mode_ == options_t::out_mode::none_check_buffer; }
 	template <options_t Options>
-	inline constexpr bool is_out_mode__count() noexcept { return Options.out_mode_ == out_mode::count; }
+	inline constexpr bool is_out_mode__count() noexcept { return Options.out_mode_ == options_t::out_mode::count; }
 	template <options_t Options>
-	inline constexpr bool is_perf_mode__normal() noexcept { return Options.perf_mode_ == perf_mode::normal; }
+	inline constexpr bool is_perf_mode__normal() noexcept { return Options.perf_mode_ == options_t::perf_mode::normal; }
 	template <options_t Options>
-	inline constexpr bool is_perf_mode__fast_ascii() noexcept { return Options.perf_mode_ == perf_mode::fast_ascii; }
+	inline constexpr bool is_perf_mode__fast_ascii() noexcept { return Options.perf_mode_ == options_t::perf_mode::fast_ascii; }
 
 	// 常用预设
 	static constexpr options_t default_opt{};
@@ -95,7 +120,7 @@ namespace chenc::utf {
 
 	enum class status_t : u8 {
 		ok,		 // 转换完成或正常
-		partial, // 部分完成（如输出缓冲区满，但在 full 模式下继续统计）
+		partial, // 部分完成
 		error,	 // 发生致命错误停止
 	};
 
@@ -114,19 +139,19 @@ namespace chenc::utf {
 	/**
 	 * @brief UTF 单字符转换输出结果
 	 */
-	template <any_utf_char In,
-			  any_utf_char Out,
-			  options_t Options>
+	template <options_t Options,
+			  any_utf_char In,
+			  any_utf_char Out>
 	struct alignas(8) char_result_t {
-		using in_char_t = In;	   // 输入字符类型
-		using out_char_t = Out;	   // 输出字符类型
-		using options_t = Options; // 配置选项
+		using in_char_t = In;								 // 输入字符类型
+		using out_char_t = Out;								 // 输出字符类型
+		inline static constexpr auto options_type = Options; // 配置选项
 
 		u8 input_block_ = 0;  // 消耗的输入单元数
 		u8 output_block_ = 0; // 产生的输出单元数
 		status_t status_ = status_t::ok;
 		error_t error_ = error_t::none;
-		u32 unicode_ = 0; // 转换后的原始码点
+		u32 unicode_ = 0; // 中间内部utf32 缓存码位
 
 		inline constexpr explicit operator bool() const noexcept {
 			return (status_ == status_t::ok) &&
@@ -137,19 +162,18 @@ namespace chenc::utf {
 	/**
 	 * @brief UTF 字符串转换输出结果
 	 */
-	template <any_utf_char In,
-			  any_utf_char Out,
-			  options_t Options>
+	template <options_t Options,
+			  any_utf_char In,
+			  any_utf_char Out>
 	struct alignas(64) str_result_t {
-		using in_char_t = In;	   // 输入字符类型
-		using out_char_t = Out;	   // 输出字符类型
-		using options_t = Options; // 配置选项
+		using in_char_t = In;								 // 输入字符类型
+		using out_char_t = Out;								 // 输出字符类型
+		inline static constexpr auto options_type = Options; // 配置选项
 
 		u64 input_block_count_ = 0;		  // 处理的输入单元总数
 		u64 output_block_count_ = 0;	  // 写入的输出单元总数
-		u64 conv_normal_char_count_ = 0;  // 成功转换的字符数
-		u64 conv_error_char_count_ = 0;	  // 错误字符数（replace/skip 模式下有效）
-		u64 first_error_index_ = 0;		  // 第一个错误的输入位置
+		u64 conv_normal_char_count_ = 0;  // 转换成功的字符数
+		u64 conv_error_char_count_ = 0;	  // 转换错误的字符数
 		u64 need_output_block_count_ = 0; // 目标编码所需的总输出单元数
 
 		status_t status_ = status_t::ok;
