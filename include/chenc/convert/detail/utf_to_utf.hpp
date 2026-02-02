@@ -16,13 +16,13 @@ namespace chenc::utf::detail {
 			if constexpr (is_error_mode__stop<Options>() ||
 						  is_error_mode__skip<Options>()) {
 				result.status_ = status_t::error;
-				result.error_ = err1;
+				result.error_ |= err1;
 				return result;
 			}
 			if constexpr (is_error_mode__replace<Options>()) {
 				result.unicode_ = Options.replace_char_;
 				result.status_ = status_t::partial;
-				result.error_ = err1;
+				result.error_ |= err1;
 			}
 		}
 		auto err2 = utf32_to_char<Options, In, Out>(result.unicode_,
@@ -47,41 +47,42 @@ namespace chenc::utf::detail {
 		const Out *const out_end = output_str + output_len;
 		while (in_str < in_end) {
 			if constexpr (is_perf_mode__fast_ascii<Options>()) {
-				if ((in_str + (8 / sizeof(In)) <= in_end) & (out_str + (8 / sizeof(Out)) <= out_end)) [[likely]] {
-					alignas(8) union {
-						u64 c64;
-						u8 c8[8];
-						u16 c16[4];
-						u32 c32[2];
-					} data;
+				if ((in_str + (8 / sizeof(In)) <= in_end) && (out_str + (8 / sizeof(Out)) <= out_end)) [[likely]] {
+					u64 c64;
 					if constexpr (utf8_char<In>) {
+						alignas(8) std::array<u8, 8> c8;
 						for (u64 i = 0; i < 8; i++)
-							data.c8[i] = static_cast<u8>(in_str[i]);
-						if ((data.c64 & 0x8080'8080'8080'8080) == 0) {
+							c8[i] = static_cast<u8>(in_str[i]);
+						c64 = std::bit_cast<u64>(c8);
+						if ((c64 & 0x8080'8080'8080'8080) == 0) [[likely]] {
 							for (u64 i = 0; i < 8; i++)
-								out_str[i] = static_cast<Out>(data.c8[i]);
+								out_str[i] = static_cast<Out>(c8[i]);
 							in_str += 8;
 							out_str += 8;
 							continue;
 						}
 					}
 					if constexpr (utf16_char<In>) {
+						alignas(8) std::array<u16, 4> c16;
 						for (u64 i = 0; i < 4; i++)
-							data.c8[i] = static_cast<u16>(in_str[i]);
-						if ((data.c64 & 0xFF80'FF80'FF80'FF80) == 0) {
+							c16[i] = static_cast<u16>(in_str[i]);
+						c64 = std::bit_cast<u64>(c16);
+						if ((c64 & 0xFF80'FF80'FF80'FF80) == 0)[[likely]] {
 							for (u64 i = 0; i < 4; i++)
-								out_str[i] = static_cast<Out>(data.c8[i]);
+								out_str[i] = static_cast<Out>(c16[i]);
 							in_str += 4;
 							out_str += 4;
 							continue;
 						}
 					}
 					if constexpr (utf32_char<In>) {
+						alignas(8) std::array<u32, 2> c32;
 						for (u64 i = 0; i < 2; i++)
-							data.c8[i] = static_cast<u32>(in_str[i]);
-						if ((data.c64 & 0xFFFF'FF80'FFFF'FF80) == 0) {
+							c32[i] = static_cast<u32>(in_str[i]);
+						c64 = std::bit_cast<u64>(c32);
+						if ((c64 & 0xFFFF'FF80'FFFF'FF80) == 0)[[likely]] {
 							for (u64 i = 0; i < 2; i++)
-								out_str[i] = static_cast<Out>(data.c8[i]);
+								out_str[i] = static_cast<Out>(c32[i]);
 							in_str += 2;
 							out_str += 2;
 							continue;
@@ -90,6 +91,7 @@ namespace chenc::utf::detail {
 				}
 			}
 
+			char_result = {};
 			error_t err1 = char_to_utf32<Options, In, Out>(in_str, in_end,
 														   char_result);
 			switch (err1) {
@@ -110,7 +112,7 @@ namespace chenc::utf::detail {
 			case error_t::surrogates:	   // 代理对
 			case error_t::non_shortest: {  // 非最短编码
 				result.conv_error_char_count_ += 1;
-				result.error_ |= error_t::in_truncated;
+				result.error_ |= err1;
 				if constexpr (is_error_mode__stop<Options>()) {
 					result.status_ = status_t::error;
 					result.input_block_count_ += char_result.input_block_;
@@ -152,12 +154,14 @@ namespace chenc::utf::detail {
 				}
 				if constexpr (is_out_mode__full<Options>()) {
 					result.need_output_block_count_ += char_result.output_block_;
+					result.status_ = status_t::partial;
+					result.error_ |= error_t::out_overflow;
 				}
 			} break;
 			}
 			out_str += char_result.output_block_;
-			char_result = {};
 		}
+
 		return result;
 	}
 } // namespace chenc::utf::detail
@@ -168,5 +172,5 @@ namespace chenc::utf::detail {
 // }
 auto u8s_to_u16s(char *input_char, uint64_t input_len,
 				 char16_t *output_char, uint64_t output_len) {
-	return chenc::utf::detail::str_to_str<chenc::utf::options_t{}>(input_char, input_len, output_char, output_len);
+	return chenc::utf::detail::str_to_str<chenc::utf::options_t{chenc::utf::options_t{}, chenc::utf::options_t::perf_mode::fast_ascii}>(input_char, input_len, output_char, output_len);
 }

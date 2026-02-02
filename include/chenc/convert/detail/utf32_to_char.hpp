@@ -20,7 +20,7 @@ namespace chenc::utf::detail {
 	template <options_t Options,
 			  any_utf_char In,
 			  any_utf_char Out>
-	inline constexpr error_t utf32_to_char(u32 input_char,
+	CHENC_FORCE_INLINE constexpr error_t utf32_to_char(u32 input_char,
 										   Out *const output_char, const Out *const output_end,
 										   char_result_t<Options, In, Out> &result) noexcept {
 		if constexpr (utf8_char<Out>) {
