@@ -1,0 +1,48 @@
+# 基于 LLVM 预设样式
+BasedOnStyle: LLVM 
+
+# 缩进宽度设置为 4 个空格
+IndentWidth: 4
+
+# Tab 宽度设置为 4 个空格
+TabWidth: 4
+
+# 不使用 Tab 字符进行缩进，而是使用空格（'Never' 是推荐值）
+UseTab: Always
+
+# 控制命名空间内的代码是否需要额外缩进
+# 'None' (或 false) 表示命名空间内的代码不进行额外缩进，保持与命名空间外部相同的缩进级别
+NamespaceIndentation: All 
+
+# 控制大括号（如函数、类、if/else、循环等）的位置
+# 'Attach'：将左大括号 { 紧跟在函数/语句的同一行（即：{不换行，紧跟}）
+# 常见的 VS 风格使用 'Attach' 或 'Allman'
+BreakBeforeBraces: Attach 
+
+# 控制构造函数初始化列表的换行方式
+# 'BeforeColon'：在冒号 (:) 之前换行，将初始化列表的冒号及其内容放到新行
+# 这样可以实现：【初始化 : 单独换行】
+BreakConstructorInitializers: BeforeColon 
+
+# 确保构造函数初始化列表的每一个初始化项都单独占一行，增加可读性
+ConstructorInitializerEachLine: true
+
+# 设置代码的最大列限制（即行宽）
+# '0' 表示禁用列限制，Clang-Format 将尽量不自动换行
+# 如果设置为一个数字（如 120），则会在超过该列时尝试换行
+ColumnLimit: 0 
+
+# 是否允许短小的 if 语句（没有大括号的单行语句）放在一行
+# 'false' 强制 if 语句主体即使很短也换行，提高代码一致性
+AllowShortIfStatementsOnASingleLine: false
+
+# 控制 case/default 标签相对于 switch 语句的缩进
+# 'false' 表示 case 标签不缩进（与 switch 对齐），这是常见的风格
+IndentCaseLabels: false
+
+# 访问修饰符（public:, private: 等）的额外缩进。通常设为 -1 到 -4
+# '-4' 表示相对于其所在的代码块左移 4 个空格，使其与父级代码块对齐
+AccessModifierOffset: -4
+
+# #if / #endif 块的缩进方式 
+IndentPPDirectives: AfterHash
