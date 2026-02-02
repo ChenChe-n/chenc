@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "chenc/type_int.hpp"
+#include "chenc/core/int.hpp"
 
 #include <algorithm>
 #include <array>
@@ -25,8 +25,8 @@ namespace chenc {
 	}
 
 	template <u64 Bytes>
-	class more_uint {
-		static_assert(Bytes >= 1 && Bytes <= 8, "more_uint: Bytes must be in [1, 8]");
+	class no_ailgn_int {
+		static_assert(Bytes >= 1 && Bytes <= 8, "no_ailgn_int: Bytes must be in [1, 8]");
 
 	private:
 		struct alignas(1) Storage {
@@ -55,97 +55,97 @@ namespace chenc {
 			return val;
 		}
 
-		inline constexpr more_uint() noexcept : storage_{} {}
-		inline constexpr more_uint(u64 val) noexcept { set(val); }
+		inline constexpr no_ailgn_int() noexcept : storage_{} {}
+		inline constexpr no_ailgn_int(u64 val) noexcept { set(val); }
 
 		// 操作符重载
 		inline constexpr operator u64() const noexcept { return get(); }
 		inline constexpr explicit operator bool() const noexcept { return get() != 0; }
-		inline constexpr more_uint &operator=(u64 val) noexcept {
+		inline constexpr no_ailgn_int &operator=(u64 val) noexcept {
 			set(val);
 			return *this;
 		}
 
 		// 算术
-		inline constexpr more_uint operator+(u64 v) const noexcept { return {get() + v}; }
-		inline constexpr more_uint operator-(u64 v) const noexcept { return {get() - v}; }
-		inline constexpr more_uint operator*(u64 v) const noexcept { return {get() * v}; }
-		inline constexpr more_uint operator/(u64 v) const noexcept { return {get() / v}; }
-		inline constexpr more_uint operator%(u64 v) const noexcept { return {get() % v}; }
+		inline constexpr no_ailgn_int operator+(u64 v) const noexcept { return {get() + v}; }
+		inline constexpr no_ailgn_int operator-(u64 v) const noexcept { return {get() - v}; }
+		inline constexpr no_ailgn_int operator*(u64 v) const noexcept { return {get() * v}; }
+		inline constexpr no_ailgn_int operator/(u64 v) const noexcept { return {get() / v}; }
+		inline constexpr no_ailgn_int operator%(u64 v) const noexcept { return {get() % v}; }
 
 		// 赋值算术
-		inline constexpr more_uint &operator+=(u64 v) noexcept {
+		inline constexpr no_ailgn_int &operator+=(u64 v) noexcept {
 			set(get() + v);
 			return *this;
 		}
-		inline constexpr more_uint &operator-=(u64 v) noexcept {
+		inline constexpr no_ailgn_int &operator-=(u64 v) noexcept {
 			set(get() - v);
 			return *this;
 		}
-		inline constexpr more_uint &operator*=(u64 v) noexcept {
+		inline constexpr no_ailgn_int &operator*=(u64 v) noexcept {
 			set(get() * v);
 			return *this;
 		}
-		inline constexpr more_uint &operator/=(u64 v) noexcept {
+		inline constexpr no_ailgn_int &operator/=(u64 v) noexcept {
 			set(get() / v);
 			return *this;
 		}
-		inline constexpr more_uint &operator%=(u64 v) noexcept {
+		inline constexpr no_ailgn_int &operator%=(u64 v) noexcept {
 			set(get() % v);
 			return *this;
 		}
 
 		// 前后自增减
-		inline constexpr more_uint &operator++() noexcept {
+		inline constexpr no_ailgn_int &operator++() noexcept {
 			set(get() + 1);
 			return *this;
 		}
-		inline constexpr more_uint operator++(int) noexcept {
-			more_uint tmp = *this;
+		inline constexpr no_ailgn_int operator++(int) noexcept {
+			no_ailgn_int tmp = *this;
 			set(get() + 1);
 			return tmp;
 		}
-		inline constexpr more_uint &operator--() noexcept {
+		inline constexpr no_ailgn_int &operator--() noexcept {
 			set(get() - 1);
 			return *this;
 		}
-		inline constexpr more_uint operator--(int) noexcept {
-			more_uint tmp = *this;
+		inline constexpr no_ailgn_int operator--(int) noexcept {
+			no_ailgn_int tmp = *this;
 			set(get() - 1);
 			return tmp;
 		}
 
 		// 位运算
-		inline constexpr more_uint operator~() const noexcept { return {~get()}; }
-		inline constexpr more_uint operator&(u64 v) const noexcept { return {get() & v}; }
-		inline constexpr more_uint &operator&=(u64 v) noexcept {
+		inline constexpr no_ailgn_int operator~() const noexcept { return {~get()}; }
+		inline constexpr no_ailgn_int operator&(u64 v) const noexcept { return {get() & v}; }
+		inline constexpr no_ailgn_int &operator&=(u64 v) noexcept {
 			set(get() & v);
 			return *this;
 		}
-		inline constexpr more_uint operator|(u64 v) const noexcept { return {get() | v}; }
-		inline constexpr more_uint &operator|=(u64 v) noexcept {
+		inline constexpr no_ailgn_int operator|(u64 v) const noexcept { return {get() | v}; }
+		inline constexpr no_ailgn_int &operator|=(u64 v) noexcept {
 			set(get() | v);
 			return *this;
 		}
-		inline constexpr more_uint operator^(u64 v) const noexcept { return {get() ^ v}; }
-		inline constexpr more_uint &operator^=(u64 v) noexcept {
+		inline constexpr no_ailgn_int operator^(u64 v) const noexcept { return {get() ^ v}; }
+		inline constexpr no_ailgn_int &operator^=(u64 v) noexcept {
 			set(get() ^ v);
 			return *this;
 		}
-		inline constexpr more_uint operator<<(u64 v) const noexcept { return {get() << v}; }
-		inline constexpr more_uint &operator<<=(u64 v) noexcept {
+		inline constexpr no_ailgn_int operator<<(u64 v) const noexcept { return {get() << v}; }
+		inline constexpr no_ailgn_int &operator<<=(u64 v) noexcept {
 			set(get() << v);
 			return *this;
 		}
-		inline constexpr more_uint operator>>(u64 v) const noexcept { return {get() >> v}; }
-		inline constexpr more_uint &operator>>=(u64 v) noexcept {
+		inline constexpr no_ailgn_int operator>>(u64 v) const noexcept { return {get() >> v}; }
+		inline constexpr no_ailgn_int &operator>>=(u64 v) noexcept {
 			set(get() >> v);
 			return *this;
 		}
 
 		// 一元
-		inline constexpr more_uint operator-() const noexcept { return {-get()}; }
-		inline constexpr more_uint operator+() const noexcept { return *this; }
+		inline constexpr no_ailgn_int operator-() const noexcept { return {-get()}; }
+		inline constexpr no_ailgn_int operator+() const noexcept { return *this; }
 		inline constexpr bool operator!() const noexcept { return get() == 0; }
 
 		// 比较
@@ -156,7 +156,7 @@ namespace chenc {
 	template <u64 Bytes>
 	class more_int {
 	private:
-		more_uint<Bytes> storage_;
+		no_ailgn_int<Bytes> storage_;
 
 	public:
 		// 核心：符号扩展逻辑
@@ -270,26 +270,5 @@ namespace chenc {
 		// 比较
 		inline constexpr bool operator==(i64 v) const noexcept { return get() == v; }
 		inline constexpr std::strong_ordering operator<=>(i64 v) const noexcept { return get() <=> v; }
-	};
-
-	struct aaa {
-		more_int<5> d_[1000];
-	};
-
-	struct bbb {
-		i64 d_[1000];
-	};
-
-	bool opa(aaa &a, aaa &b) {
-		return a.d_[144] >= a.d_[33];
-	}
-	bool opb(bbb &a, bbb &b) {
-		return a.d_[144] >= a.d_[33];
-	}
-	i64 opa1(aaa &a, aaa &b) {
-		return a.d_[144] / a.d_[33];
-	}
-	i64 opb1(bbb &a, bbb &b) {
-		return a.d_[144] / a.d_[33];
-	}
+	}; 
 } // namespace chenc
