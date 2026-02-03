@@ -47,7 +47,7 @@ namespace chenc::utf {
 		};
 		enum class perf_mode : u8 {
 			normal,
-			fast_ascii // 优化 ASCII 路径
+			simd // 优化 ASCII 路径
 		};
 
 		char_mode char_mode_ = char_mode::strict;
@@ -109,7 +109,7 @@ namespace chenc::utf {
 	template <options_t Options>
 	inline constexpr bool is_perf_mode__normal() noexcept { return Options.perf_mode_ == options_t::perf_mode::normal; }
 	template <options_t Options>
-	inline constexpr bool is_perf_mode__fast_ascii() noexcept { return Options.perf_mode_ == options_t::perf_mode::fast_ascii; }
+	inline constexpr bool is_perf_mode__simd() noexcept { return Options.perf_mode_ == options_t::perf_mode::simd; }
 
 	// 常用预设
 	static constexpr options_t default_opt{};
