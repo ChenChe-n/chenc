@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "chenc/core/int.hpp"
+#include "chenc/core/type.hpp"
 
 #include <algorithm>
 #include <array>
