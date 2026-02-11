@@ -1,6 +1,7 @@
 #pragma once
 
-#include "chenc/cpp.hpp"
+#include "chenc/core/cpp.hpp"
+#include "chenc/core/type.hpp"
 
 // --- 架构探测层 ---
 #if defined(__x86_64__) || defined(_M_X64)
@@ -40,41 +41,3 @@
 #	define CHENC_ARCH_POWERPC_32 32
 #	define CHENC_ARCH_POWERPC 32
 #endif
-
-// --- 硬件指令头文件包含 ---
-#if defined(CHENC_ARCH_X86)
-#	include <immintrin.h>
-#elif defined(CHENC_ARCH_ARM)
-#	include <arm_neon.h>
-#	if defined(CHENC_COMPILER_MSVC)
-#		include <intrin.h>
-#	endif
-#endif
-
-// --- 低功耗等待指令 (cpu_relax) ---
-namespace chenc {
-	inline void cpu_relax() {
-#if defined(CHENC_ARCH_X86)
-#	if defined(CHENC_COMPILER_MSVC)
-		_mm_pause();
-#	else
-		__builtin_ia32_pause();
-#	endif
-#elif defined(CHENC_ARCH_ARM)
-#	if defined(CHENC_COMPILER_MSVC)
-		__yield();
-#	else
-		__asm__ __volatile__("yield" ::: "memory");
-#	endif
-#elif defined(CHENC_ARCH_RISCV)
-		__asm__ __volatile__("fence" ::: "memory");
-#else
-// 回退方案：使用编译器屏障防止空循环被彻底消除
-#	if defined(CHENC_COMPILER_MSVC)
-		_ReadWriteBarrier();
-#	else
-		__asm__ __volatile__("" ::: "memory");
-#	endif
-#endif
-	}
-} // namespace chenc
